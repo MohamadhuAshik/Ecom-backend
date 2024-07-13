@@ -4,6 +4,8 @@ const cors = require("cors")
 require("dotenv").config()
 // const cors = require("cors")
 const connectDB = require("./config/db")
+const routes = require("./routes/route")
+
 const PORT = process.env.PORT || 5000
 
 // middlewares
@@ -15,7 +17,6 @@ app.use(express.static("public"));
 // connect to the mongodb database
 connectDB()
 
-app.use('/api/items', require("./routes/items"))
-app.use('/api/payment', require("./routes/payment"))
+app.use(routes)
 
 app.listen(PORT, console.log("Server is running on port ", PORT))

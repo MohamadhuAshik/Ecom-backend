@@ -19,7 +19,7 @@ const initializePayment = async (req, res) => {
 
     // form data
     const data = {
-        amount: req.body.amount, 
+        amount: req.body.amount,
         currency: 'ETB',
         email: 'ato@ekele.com',
         first_name: 'Ato',
@@ -36,21 +36,22 @@ const initializePayment = async (req, res) => {
         })
         .catch((err) => console.log(err))
 
-        /* res.json({res: "message", url: CALLBACK_URL}) */
+    /* res.json({res: "message", url: CALLBACK_URL}) */
 }
 
 const verifyPayment = async (req, res) => {
-        await axios.get("https://api.chapa.co/v1/transaction/verify/" + req.params.id, config)
-            .then((response) => {
-                console.log(response)
-                res.json({message: response})
-            }) 
-            .catch((err) => {
-                console.log("Payment can't be verfied", err)
-                res.json({error: err})
-            })
+    await axios.get("https://api.chapa.co/v1/transaction/verify/" + req.params.id, config)
+        .then((response) => {
+            console.log(response)
+            res.json({ message: response })
+        })
+        .catch((err) => {
+            console.log("Payment can't be verfied", err)
+            res.json({ error: err })
+        })
 
-            res.json({message: "response", param: req.params.id})
+    res.json({ message: "response", param: req.params.id })
 }
 
-module.exports = { initializePayment, verifyPayment }
+const paymentControl = { initializePayment, verifyPayment }
+module.exports = paymentControl

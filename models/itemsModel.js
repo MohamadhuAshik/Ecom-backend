@@ -1,6 +1,6 @@
 /* Schema for the Item document */
 
-const { type } = require("express/lib/response")
+// const { type } = require("express/lib/response")
 const mongoose = require("mongoose")
 // const AutoIncrement = require('mongoose-sequence')(mongoose);
 
