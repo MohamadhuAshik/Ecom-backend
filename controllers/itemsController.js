@@ -14,12 +14,13 @@ const addItem = async (req, res) => {
         const highlights = req.body.highlights.split(",")
         const size = req.body.size.split(",")
         const images = req.files
+        console.log("images", images)
         const URL = images.map((data, index) => {
             const filename = data.filename
             // console.log("filename", filename)
             return {
                 Id: index + 1,
-                URL: `http://localhost:5000/${req.body.category}/${filename}`
+                URL: `http://localhost:${process.env.PORT}/${req.body.category}/${filename}`
             }
         })
         // console.log("URL", URL)
