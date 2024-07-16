@@ -81,6 +81,194 @@ const login = async (req, res) => {
   }
 };
 
-const usersController = { createUser, login };
+const getUserData = async (req, res) => {
+  const userDB = await users.findOne({ username: req.username });
+  if (!userDB) {
+    return res
+      .status(404)
+      .json({ response_code: 404, message: "user not found" });
+  }
+  const userData = {
+    id: userDB._id,
+    first_name: userDB.first_name,
+    last_name: userDB.last_name,
+    username: userDB.username,
+    email: userDB.email,
+    mobile_number: userDB.mobile_number || "",
+    wishlist: userDB.wishlist,
+    cart_items: userDB.cart_items,
+    orders: userDB.orders,
+    addresses: userDB.addresses,
+  };
+  res.status(200).json({ response_code: 200, userData });
+};
+
+const updateName = async (req, res) => {
+  try {
+    const { FirstName, LastName } = req.body;
+    const dbUser = await users.findOne({ username: req.username });
+    if (!dbUser) {
+      return res.status(404).json({ message: "user not found" });
+    }
+    await users.updateOne(
+      { username: req.username },
+      {
+        $set: {
+          first_name: FirstName,
+          last_name: LastName,
+        },
+      }
+    );
+
+    res
+      .status(200)
+      .json({ response_code: 200, message: "name updated successfully" });
+  } catch (error) {
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+const userMailUpdate = async (req, res) => {
+  try {
+    const { Email } = req.body;
+    const dbUser = await users.findOne({ username: req.username });
+    if (!dbUser) {
+      return res.status(404).json({ message: "user not found" });
+    }
+
+    await users.updateOne(
+      { username: req.username },
+      {
+        $set: {
+          email: Email,
+        },
+      }
+    );
+    res
+      .status(200)
+      .json({ response_code: 200, message: "email updated successfully" });
+  } catch (error) {
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+const updatePassword = async (req, res) => {
+  try {
+    const { OldPassword, NewPassword } = req.body;
+    const dbUser = await users.findOne({ username: req.username });
+    if (!dbUser) {
+      return res
+        .status(404)
+        .json({ response_code: 404, message: "user not found" });
+    }
+
+    const IsPasswordMatch = await bcrypt.compare(OldPassword, dbUser.password);
+    console.log("IsPasswordMatch", IsPasswordMatch);
+    if (!IsPasswordMatch) {
+      return res
+        .status(300)
+        .json({ response_code: 300, message: "Wrong password" });
+    }
+    const HashedNewPassword = await bcrypt.hash(NewPassword, 10);
+    await users.updateOne(
+      { username: req.username },
+      {
+        $set: {
+          password: HashedNewPassword,
+        },
+      }
+    );
+
+    res
+      .status(200)
+      .json({ response_code: 200, message: "Password updated successfully" });
+  } catch (error) {
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+const addMobileNumber = async (req, res) => {
+  try {
+    const { MobileNumber } = req.body;
+    if (!MobileNumber) {
+      return res
+        .status(204)
+        .json({ response_code: 204, message: "all fields are required" });
+    }
+    const dbUser = await users.findOne({ username: req.username });
+
+    if (!dbUser) {
+      return res
+        .status(404)
+        .json({ response_code: 404, message: "user not found" });
+    }
+    await users.updateOne(
+      { username: req.username },
+      {
+        $set: {
+          mobile_number: MobileNumber,
+        },
+      }
+    );
+    res.status(200).json({
+      response_code: 200,
+      message: "Mobile number added successfully",
+    });
+  } catch (error) {
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+const updateUsername = async (req, res) => {
+  try {
+    const { Username } = req.body;
+    if (!Username) {
+      return res
+        .status(204)
+        .json({ response_code: 204, message: "All fields are required" });
+    }
+    const dbUser = await users.findOne({ username: req.username });
+    if (!dbUser) {
+      return res
+        .status(404)
+        .json({ response_code: 404, message: "user not found" });
+    }
+    const user = await users.findOne({ username: Username });
+
+    if (user) {
+      return res
+        .status(201)
+        .json({ response_code: 201, message: "username already exists" });
+    }
+    await users.updateOne(
+      { username: req.username },
+      { $set: { username: Username } }
+    );
+
+    const userData = {
+      username: Username,
+    };
+    const newToken = jwt.sign(userData, process.env.JWT_SECRET_KEY);
+
+    res.status(200).json({
+      response_code: 200,
+      message: "username updated successfully",
+      newToken,
+    });
+  } catch (error) {
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+const usersController = {
+  createUser,
+  login,
+  getUserData,
+  updateName,
+  userMailUpdate,
+  updatePassword,
+  addMobileNumber,
+  updateUsername,
+};
 
 module.exports = usersController;
