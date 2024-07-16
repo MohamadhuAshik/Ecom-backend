@@ -2,12 +2,31 @@ const Item = require("../models/itemsModel");
 
 /* GET request handler */
 const getItem = async (req, res) => {
+    const result = {}
     const items = await Item.find()
     // console.log("items", items)
     if (items.length === 0) {
         return res.status(204).json({ message: "No data Found" })
     }
-    res.status(200).json({ response_code: 200, items })
+    const page = Number(req.query.page)
+    const limit = Number(req.query.limit)
+    const startIndex = (page - 1) * limit
+    const endIndex = page * limit
+    if (endIndex < items.length) {
+        result.Next = {
+            page: page + 1,
+
+        };
+    }
+    if (startIndex > 0) {
+        result.Previous = {
+            page: page - 1,
+
+        };
+    }
+    result.length = items.length
+    result.data = items.slice(startIndex, endIndex)
+    res.status(200).json({ response_code: 200, result })
 }
 
 
