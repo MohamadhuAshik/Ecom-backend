@@ -1,4 +1,5 @@
 const users = require("../models/usersModel");
+const addresses = require("../models/addressModel");
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
 
@@ -42,7 +43,6 @@ const createUser = async (req, res) => {
       .json({ response_code: 500, message: "Internal server error", err });
   }
 };
-
 
 const login = async (req, res) => {
   try {
@@ -260,6 +260,121 @@ const updateUsername = async (req, res) => {
   }
 };
 
+const addShippingAddress = async (req, res) => {
+  try {
+    const {
+      Name,
+      AddressLine1,
+      AddressLine2,
+      City,
+      State,
+      ZipCode,
+      Email,
+      Phone,
+      Primary,
+    } = req.body;
+    if (
+      !Name ||
+      !AddressLine1 ||
+      !City ||
+      !State ||
+      !ZipCode ||
+      !Phone ||
+      !AddressLine2 ||
+      !Email
+    ) {
+      return res
+        .status(204)
+        .json({ response_code: 204, message: "All fields are required" });
+    }
+    const dbUser = await users.findOne({ username: req.username });
+    if (!dbUser) {
+      return res
+        .status(404)
+        .json({ response_code: 404, message: "Invalid user" });
+    }
+
+    const newAddress = {
+      name: Name,
+      address_line1: AddressLine1,
+      address_line2: AddressLine2,
+      city: City,
+      state: State,
+      zip_code: ZipCode,
+      email: Email,
+      phone: Phone,
+      primary: Primary,
+    };
+    console.log("newAddress", newAddress);
+    await users.updateOne(
+      { username: req.username },
+      { $push: { addresses: newAddress } }
+    );
+    // console.log("add", add);
+    res
+      .status(200)
+      .json({ response_code: 200, message: "Address added successfully" });
+  } catch (err) {
+    res.status(500).json({ message: "Internal server error", err });
+  }
+};
+
+// const editShippingAddress=async(req,res)=>{
+//   try {
+//     const {
+//       Id,
+//       Name,
+//       AddressLine1,
+//       AddressLine2,
+//       City,
+//       State,
+//       ZipCode,
+//       Email,
+//       Phone,
+//       Primary,
+//     } = req.body;
+//     if (
+//       !Id ||
+//       !Name ||
+//       !AddressLine1 ||
+//       !City ||
+//       !State ||
+//       !ZipCode ||
+//       !Phone ||
+//       !AddressLine2 ||
+//       !Email
+//     ) {
+//       return res
+//         .status(204)
+//         .json({ response_code: 204, message: "All fields are required" });
+//     }
+//     const dbUser = await users.findOne({ username: req.username });
+//     if (!dbUser) {
+//       return res
+//         .status(404)
+//         .json({ response_code: 404, message: "Invalid user" });
+//     }
+
+//     const newAddress = {
+//       name: Name,
+//       address_line1: AddressLine1,
+//       address_line2: AddressLine2,
+//       city: City,
+//       state: State,
+//       zip_code: ZipCode,
+//       email: Email,
+//       phone: Phone,
+//       primary: Primary,
+//     };
+
+//     await users.updateOne({username:username},{$set:{
+
+//     }})
+//   }catch(err){
+//     res.status(500).json({message:'Internal server error'})
+//   }
+// }
+
 const usersController = {
   createUser,
   login,
@@ -269,6 +384,7 @@ const usersController = {
   updatePassword,
   addMobileNumber,
   updateUsername,
+  addShippingAddress,
 };
 
 module.exports = usersController;

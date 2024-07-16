@@ -29,5 +29,6 @@ router.post("/updateuseremail", verifyToken, usersController.userMailUpdate);
 router.post("/updatepassword", verifyToken, usersController.updatePassword);
 router.post("/addmobilenumber", verifyToken, usersController.addMobileNumber);
 router.post("/updateusername", verifyToken, usersController.updateUsername);
+router.post("/addaddress", verifyToken, usersController.addShippingAddress);
 
 module.exports = router;

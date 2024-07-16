@@ -1,4 +1,5 @@
 const mongoose = require("mongoose");
+const addressSchema = require("./addressModel");
 
 const usersSchema = mongoose.Schema(
   {
@@ -33,9 +34,7 @@ const usersSchema = mongoose.Schema(
     orders: {
       type: Array,
     },
-    addresses: {
-      type: Array,
-    },
+    addresses: [addressSchema],
   },
   {
     timestamps: true,
