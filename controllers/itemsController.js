@@ -18,7 +18,7 @@ const addItem = async (req, res) => {
       // console.log("filename", filename)
       return {
         Id: index + 1,
-        URL: `http://localhost:5000/${req.body.category}/${filename}`,
+        URL: `http://localhost:${process.env.PORT}/${req.body.category}/${filename}`,
       };
     });
     // console.log("URL", URL)
