@@ -5,6 +5,7 @@ const uploadPhoto = require("../middlewares/upload");
 const itemCrud = require("../controllers/itemsController");
 const paymentControl = require("../controllers/paymentController");
 const usersController = require("../controllers/usersController");
+const verifyToken = require("../middlewares/Authorization");
 
 /* Products Api's */
 
@@ -22,5 +23,11 @@ router.get("/verify/:id", paymentControl.verifyPayment);
 
 router.post("/signup", usersController.createUser);
 router.post("/login", usersController.login);
+router.get("/getuserdata", verifyToken, usersController.getUserData);
+router.post("/updatename", verifyToken, usersController.updateName);
+router.post("/updateuseremail", verifyToken, usersController.userMailUpdate);
+router.post("/updatepassword", verifyToken, usersController.updatePassword);
+router.post("/addmobilenumber", verifyToken, usersController.addMobileNumber);
+router.post("/updateusername", verifyToken, usersController.updateUsername);
 
 module.exports = router;
