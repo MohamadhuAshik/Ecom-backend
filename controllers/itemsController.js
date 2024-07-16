@@ -4,7 +4,11 @@ const Item = require("../models/itemsModel")
 /* GET request handler */
 const getItem = async (req, res) => {
     const items = await Item.find()
-    res.json(items)
+    // console.log("items", items)
+    if (items.length === 0) {
+        return res.status(204).json({ message: "No data Found" })
+    }
+    res.status(200).json({ response_code: 200, items })
 }
 
 
@@ -14,7 +18,7 @@ const addItem = async (req, res) => {
         const highlights = req.body.highlights.split(",")
         const size = req.body.size.split(",")
         const images = req.files
-        console.log("images", images)
+        // console.log("images", images)
         const URL = images.map((data, index) => {
             const filename = data.filename
             // console.log("filename", filename)
