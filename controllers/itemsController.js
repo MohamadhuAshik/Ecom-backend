@@ -79,13 +79,29 @@ const addItem = async (req, res) => {
 };
 
 /* PUT Request handler */
-const updateItem = (req, res) => {
+const updateItem = async (req, res) => {
+    const { id } = req.params
+    // await Item.updateOne({ _id: id },
+    //     {
+    //         $set: {
+
+    //         }
+    //     }
+    // )
     res.json({ message: "update Item" });
 };
 
 /* DELETE Request handler */
-const deleteItem = (req, res) => {
-    res.json({ message: "delete Item" });
+const deleteItem = async (req, res) => {
+    try {
+        const { id } = req.params
+        await Item.deleteOne({ _id: id })
+        res.status(200).json({ response_code: 200, message: "delete Item successfully" });
+    } catch (err) {
+        console.log(err)
+        res.status(500).json({ message: "Internal Server Error" })
+    }
+
 };
 
 const itemCrud = {
