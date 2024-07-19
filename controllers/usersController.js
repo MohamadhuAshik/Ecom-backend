@@ -81,6 +81,8 @@ const login = async (req, res) => {
   }
 };
 
+//user details api's
+
 const getUserData = async (req, res) => {
   const userDB = await users.findOne({ username: req.username });
   if (!userDB) {
@@ -260,6 +262,8 @@ const updateUsername = async (req, res) => {
   }
 };
 
+//shipping address api's
+
 const addShippingAddress = async (req, res) => {
   try {
     const {
@@ -319,61 +323,197 @@ const addShippingAddress = async (req, res) => {
   }
 };
 
-// const editShippingAddress=async(req,res)=>{
-//   try {
-//     const {
-//       Id,
-//       Name,
-//       AddressLine1,
-//       AddressLine2,
-//       City,
-//       State,
-//       ZipCode,
-//       Email,
-//       Phone,
-//       Primary,
-//     } = req.body;
-//     if (
-//       !Id ||
-//       !Name ||
-//       !AddressLine1 ||
-//       !City ||
-//       !State ||
-//       !ZipCode ||
-//       !Phone ||
-//       !AddressLine2 ||
-//       !Email
-//     ) {
-//       return res
-//         .status(204)
-//         .json({ response_code: 204, message: "All fields are required" });
-//     }
-//     const dbUser = await users.findOne({ username: req.username });
-//     if (!dbUser) {
-//       return res
-//         .status(404)
-//         .json({ response_code: 404, message: "Invalid user" });
-//     }
+const editShippingAddress = async (req, res) => {
+  try {
+    const {
+      Id,
+      Name,
+      AddressLine1,
+      AddressLine2,
+      City,
+      State,
+      ZipCode,
+      Email,
+      Phone,
+      Primary,
+    } = req.body;
+    if (
+      !Id ||
+      !Name ||
+      !AddressLine1 ||
+      !City ||
+      !State ||
+      !ZipCode ||
+      !Phone ||
+      !AddressLine2 ||
+      !Email
+    ) {
+      return res
+        .status(204)
+        .json({ response_code: 204, message: "All fields are required" });
+    }
+    const dbUser = await users.findOne({ username: req.username });
+    if (!dbUser) {
+      return res
+        .status(404)
+        .json({ response_code: 404, message: "Invalid user" });
+    }
 
-//     const newAddress = {
-//       name: Name,
-//       address_line1: AddressLine1,
-//       address_line2: AddressLine2,
-//       city: City,
-//       state: State,
-//       zip_code: ZipCode,
-//       email: Email,
-//       phone: Phone,
-//       primary: Primary,
-//     };
+    const newAddress = {
+      name: Name,
+      address_line1: AddressLine1,
+      address_line2: AddressLine2,
+      city: City,
+      state: State,
+      zip_code: ZipCode,
+      email: Email,
+      phone: Phone,
+      primary: Primary,
+    };
 
-//     await users.updateOne({username:username},{$set:{
+    await users.updateOne(
+      { username: req.username },
+      {
+        $set: {
+          "addresses.$[outer]": newAddress,
+        },
+      },
+      {
+        arrayFilters: [{ "outer._id": Id }],
+      }
+    );
 
-//     }})
-//   }catch(err){
-//     res.status(500).json({message:'Internal server error'})
-//   }
-// }
+    res
+      .status(200)
+      .json({ response_code: 200, message: "address updated successfully" });
+  } catch (err) {
+    console.log("err", err);
+    res.status(500).json({ message: "Internal server error", err });
+  }
+};
+
+const deleteShippingAddress = async (req, res) => {
+  try {
+    const { Id } = req.body;
+    if (!Id) {
+      return res.status(300).json({
+        response_code: 300,
+        message: "Id is required to delete the address",
+      });
+    }
+    const dbUser = await users.findOne({ username: req.username });
+    if (!dbUser) {
+      return res
+        .status(404)
+        .json({ response_code: 404, message: "Invalid username" });
+    }
+    await users.updateOne(
+      { username: req.username },
+      { $pull: { addresses: { _id: Id } } }
+    );
+    res
+      .status(200)
+      .json({ response_code: 200, message: "Address deleted successfully" });
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({ message: "Internal server error", err });
+  }
+};
+
+const setPrimaryAddress = async (req, res) => {
+  try {
+    const { Id } = req.body;
+    if (!Id) {
+      return res.status(300).json({
+        response_code: 300,
+        message: "Id is required to delete the address",
+      });
+    }
+    const dbUser = await users.findOne({ username: req.username });
+    if (!dbUser) {
+      return res
+        .status(404)
+        .json({ response_code: 404, message: "Invalid username" });
+    }
+
+    await users.updateOne(
+      { username: req.username },
+      { $set: { "addresses.$[].primary": false } }
+    );
+
+    await users.updateOne(
+      { username: req.username },
+      { $set: { "addresses.$[outer].primary": true } },
+      { arrayFilters: [{ "outer._id": Id }] }
+    );
+    // await users.updateOne(
+    //   { username: req.username, "addresses._id": Id },
+    //   { $set: { "addresses.$.primary": Primary } }
+    // );
+
+    res
+      .status(200)
+      .json({ response_code: 200, message: "address setted as primary" });
+  } catch (err) {
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+const removePrimaryAddress = async (req, res) => {
+  try {
+    const { Id } = req.body;
+    if (!Id) {
+      return res.status(300).json({
+        response_code: 300,
+        message: "Id is required to delete the address",
+      });
+    }
+    const dbUser = await users.findOne({ username: req.username });
+    if (!dbUser) {
+      return res
+        .status(404)
+        .json({ response_code: 404, message: "Invalid username" });
+    }
+
+    await users.updateOne(
+      { username: req.username },
+      { $set: { "addresses.$[outer].primary": false } },
+      { arrayFilters: [{ "outer._id": Id }] }
+    );
+
+    res
+      .status(200)
+      .json({ response_code: 200, message: "address removed as primary" });
+  } catch (err) {
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+//cart api's
+
+const addToCart = async (req, res) => {
+  try {
+    const { Id } = req.body;
+    if (!Id) {
+      return res
+        .status(400)
+        .json({ response_code: "400", message: "Id is required" });
+    }
+    const dbUser = await users.findOne({ username: req.username });
+    if (!dbUser) {
+      return res.status(404).json({ message: "Invalid user" });
+    }
+    await users.updateOne(
+      { username: req.username },
+      { $push: { cart_items: Id } }
+    );
+    res
+      .status(200)
+      .json({ response_code: 200, message: "Item added successfully" });
+  } catch (err) {
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
 
 const usersController = {
   createUser,
@@ -385,6 +525,11 @@ const usersController = {
   addMobileNumber,
   updateUsername,
   addShippingAddress,
+  editShippingAddress,
+  deleteShippingAddress,
+  setPrimaryAddress,
+  removePrimaryAddress,
+  addToCart,
 };
 
 module.exports = usersController;

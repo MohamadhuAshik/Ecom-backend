@@ -13,6 +13,7 @@ router.get("/api/items", itemCrud.getItem);
 router.post("/api/items", uploadPhoto.array("images"), itemCrud.addItem);
 router.put("/api/items/:id", itemCrud.updateItem);
 router.delete("/api/items/:id", itemCrud.deleteItem);
+router.get("/api/getallitems", itemCrud.getAllItems);
 
 /* Payment Api's */
 
@@ -30,5 +31,21 @@ router.post("/updatepassword", verifyToken, usersController.updatePassword);
 router.post("/addmobilenumber", verifyToken, usersController.addMobileNumber);
 router.post("/updateusername", verifyToken, usersController.updateUsername);
 router.post("/addaddress", verifyToken, usersController.addShippingAddress);
+router.post("/editaddress", verifyToken, usersController.editShippingAddress);
+router.post(
+  "/deleteaddress",
+  verifyToken,
+  usersController.deleteShippingAddress
+);
+router.post("/setprimary", verifyToken, usersController.setPrimaryAddress);
+router.post(
+  "/removeprimary",
+  verifyToken,
+  usersController.removePrimaryAddress
+);
+
+//cart api's
+
+router.post("/addtocart", verifyToken, usersController.addToCart);
 
 module.exports = router;
