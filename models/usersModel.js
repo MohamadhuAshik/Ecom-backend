@@ -1,5 +1,6 @@
 const mongoose = require("mongoose");
 const addressSchema = require("./addressModel");
+const Schema = mongoose.Schema;
 
 const usersSchema = mongoose.Schema(
   {
@@ -28,9 +29,7 @@ const usersSchema = mongoose.Schema(
     wishlist: {
       type: Array,
     },
-    cart_items: {
-      type: Array,
-    },
+    cart_items: [{ type: Schema.Types.ObjectId, ref: "Item" }],
     orders: {
       type: Array,
     },

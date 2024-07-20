@@ -47,5 +47,7 @@ router.post(
 //cart api's
 
 router.post("/addtocart", verifyToken, usersController.addToCart);
+router.get("/getcartitems", verifyToken, usersController.getCartItems);
+router.post("/removefromcart", verifyToken, usersController.removeFromCart);
 
 module.exports = router;
