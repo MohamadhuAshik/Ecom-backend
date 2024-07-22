@@ -565,6 +565,88 @@ const removeFromCart = async (req, res) => {
     res.status(500).json({ message: "Internal server error" });
   }
 };
+
+//wishlist api's
+
+const addToFavourites = async (req, res) => {
+  try {
+    const { Id } = req.body;
+    if (!Id) {
+      return res
+        .status(400)
+        .json({ response_code: 400, message: "Id is required" });
+    }
+    const dbUser = await users.findOne({ username: req.username });
+    if (!dbUser) {
+      return res.status(404).json({
+        response_code: 404,
+        message: "Invalid userid or token missing",
+      });
+    }
+    await users.updateOne(
+      { username: req.username },
+      { $push: { wishlist: Id } }
+    );
+    res
+      .status(200)
+      .json({ response_code: 200, message: "Item added successfully" });
+  } catch (err) {
+    res
+      .status(500)
+      .json({ response_code: 500, message: "Internal server error" });
+  }
+};
+
+const getFavouriteItems = async (req, res) => {
+  try {
+    const dbUser = await users.findOne({ username: req.username });
+    if (!dbUser) {
+      return res.status(404).json({
+        response_code: 404,
+        message: "Invalid userid or token missing",
+      });
+    }
+
+    const wishlist_items = await dbUser.populate("wishlist");
+    // const wishlist_items = await users
+    //   .findOne({ username: req.username })
+    //   .populate("wishlist");
+    res.status(200).json({
+      response_code: 200,
+      message: "favourite items retrived successfully",
+      wishlist: wishlist_items.wishlist,
+    });
+  } catch (error) {
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+const removeFromFavourites = async (req, res) => {
+  try {
+    const { Id } = req.body;
+    if (!Id) {
+      return res
+        .status(400)
+        .json({ response_code: 400, message: "Id is required" });
+    }
+    const dbUser = await users.findOne({ username: req.username });
+    if (!dbUser) {
+      return res.status(404).json({
+        response_code: 404,
+        message: "Invalid userid or token missing",
+      });
+    }
+    await users.updateOne(
+      { username: req.username },
+      { $pull: { wishlist: Id } }
+    );
+    res
+      .status(200)
+      .json({ response_code: 200, message: "Item removed successfully" });
+  } catch (error) {
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
 const usersController = {
   createUser,
   login,
@@ -582,6 +664,9 @@ const usersController = {
   addToCart,
   getCartItems,
   removeFromCart,
+  addToFavourites,
+  getFavouriteItems,
+  removeFromFavourites,
 };
 
 module.exports = usersController;

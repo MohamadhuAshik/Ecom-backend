@@ -26,9 +26,7 @@ const usersSchema = mongoose.Schema(
       type: String,
       required: true,
     },
-    wishlist: {
-      type: Array,
-    },
+    wishlist: [{ type: Schema.Types.ObjectId, ref: "Item" }],
     cart_items: [{ type: Schema.Types.ObjectId, ref: "Item" }],
     orders: {
       type: Array,
