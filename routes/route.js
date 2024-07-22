@@ -49,5 +49,20 @@ router.post(
 //cart api's
 
 router.post("/addtocart", verifyToken, usersController.addToCart);
+router.get("/getcartitems", verifyToken, usersController.getCartItems);
+router.post("/removefromcart", verifyToken, usersController.removeFromCart);
+
+//favourite api's
+router.post("/addtofavourites", verifyToken, usersController.addToFavourites);
+router.get(
+  "/getfavouriteitems",
+  verifyToken,
+  usersController.getFavouriteItems
+);
+router.post(
+  "/removefromfavourites",
+  verifyToken,
+  usersController.removeFromFavourites
+);
 
 module.exports = router;
