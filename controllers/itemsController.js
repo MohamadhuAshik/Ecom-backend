@@ -1,4 +1,7 @@
 const Item = require("../models/itemsModel");
+const path = require("path")
+const fs = require("fs");
+const { set } = require("mongoose");
 
 /* GET request handler */
 const getItem = async (req, res) => {
@@ -89,19 +92,154 @@ const addItem = async (req, res) => {
 };
 
 /* PUT Request handler */
-const updateItem = (req, res) => {
-  const { id } = req.params;
-  res.json({ message: "update Item" });
+const updateItem = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const {
+      productName,
+      category,
+      productPrice,
+      productType,
+      productDescription,
+      productColor,
+      productHighlights,
+      productDetails,
+      productSize
+    } = req.body;
+
+    if (!productName || !category || !productPrice || !productType || !productDescription || !productColor ||
+      !productHighlights || !productDetails || !productSize) {
+      return res.status(400).json({
+        message: "Required fields are missing.",
+      });
+
+    }
+
+    const highlights = productHighlights.split(",")
+    const size = productSize.split(",");
+
+    /* Already uploaded Item Image Deleted */
+    const dbItemData = await Item.findOne({ _id: id })
+    const dbPrimaryImages = dbItemData.primaryImage.map((data) => {
+      return data.URL
+    })
+    const dbProductImages = dbItemData.image.map((data) => {
+      return data.URL
+    })
+
+    const dbImages = [...dbPrimaryImages, ...dbProductImages]
+    console.log("dbImages", dbImages)
+    const uniqueImages = [...new Set(dbImages)];
+    console.log("uniqueImages", uniqueImages)
+
+
+    if (uniqueImages && uniqueImages.length !== 0) {
+      uniqueImages.forEach((data) => {
+        console.log(data);
+        const fileName = path.basename(data);
+        console.log(fileName)
+        if (fileName) {
+          const filePath = path.join(__dirname, '..', 'public', category, fileName);
+          try {
+            fs.unlinkSync(filePath);
+            console.log('File deleted successfully');
+          } catch (err) {
+            console.error('Error deleting file:', err);
+          }
+
+        }
+      });
+    }
+
+    const primaryImageURL = req.files['primaryImage'] ?
+      req.files['primaryImage'].map((data, index) => {
+        const filename = data.filename;
+        return {
+          Id: index + 1,
+          URL: `http://localhost:${process.env.PORT}/${category}/${filename}`,
+        };
+      })
+      :
+      [];
+
+    const productImageURL = req.files['productImages'] ?
+      req.files['productImages'].map((data, index) => {
+        const filename = data.filename;
+        return {
+          Id: index + 1,
+          URL: `http://localhost:${process.env.PORT}/${category}/${filename}`,
+        };
+      })
+      :
+      [];
+
+    const updatedItems = {
+      name: productName,
+      category: category,
+      color: productColor,
+      type: productType,
+      description: productDescription,
+      price: productPrice,
+      size: size,
+      highlights: highlights,
+      detail: productDetails,
+      image: productImageURL,
+      primaryImage: primaryImageURL
+    }
+    await Item.updateOne(
+      { _id: id },
+      { $set: updatedItems }
+    );
+
+    res.json({ response_code: 200, message: "update Item Successfully" });
+  } catch (err) {
+    console.log(err)
+    res.status(500).json({ message: "Internal Server Error" })
+  }
 };
 
 /* DELETE Request handler */
 const deleteItem = async (req, res) => {
   try {
     const { id } = req.params;
+    /* image Deleted */
+    const dbItemData = await Item.findOne({ _id: id })
+    const dbPrimaryImages = dbItemData.primaryImage.map((data) => {
+      return data.URL
+    })
+    const dbProductImages = dbItemData.image.map((data) => {
+      return data.URL
+    })
+
+    const dbImages = [...dbPrimaryImages, ...dbProductImages]
+    console.log("dbImages", dbImages)
+    const uniqueImages = [...new Set(dbImages)];
+    console.log("uniqueImages", uniqueImages)
+
+
+    if (uniqueImages && uniqueImages.length !== 0) {
+      uniqueImages.forEach((data) => {
+        console.log(data);
+        const fileName = path.basename(data);
+        console.log(fileName)
+        if (fileName) {
+          const filePath = path.join(__dirname, '..', 'public', dbItemData.category, fileName);
+          try {
+            fs.unlinkSync(filePath);
+            console.log('File deleted successfully');
+          } catch (err) {
+            console.error('Error deleting file:', err);
+          }
+
+        }
+      });
+    }
+
     await Item.deleteOne({ _id: id });
     res
       .status(200)
       .json({ response_code: 200, message: "delete Item successfully" });
+
   } catch (err) {
     console.log(err);
     res.status(500).json({ message: "Internal Server Error" });
