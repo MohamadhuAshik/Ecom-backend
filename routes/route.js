@@ -12,7 +12,9 @@ const ordersController = require("../controllers/ordersController");
 
 router.get("/api/items", itemCrud.getItem);
 router.post("/api/items", uploadPhoto.array("images"), itemCrud.addItem);
-router.put("/api/items/:id", itemCrud.updateItem);
+router.put("/api/items/:id", uploadPhoto.fields([
+  { name: 'primaryImage', maxCount: 1 },
+  { name: 'productImages', maxCount: 10 }]), itemCrud.updateItem);
 router.delete("/api/items/:id", itemCrud.deleteItem);
 router.get("/api/getallitems", itemCrud.getAllItems);
 
