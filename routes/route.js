@@ -6,6 +6,7 @@ const itemCrud = require("../controllers/itemsController");
 const paymentControl = require("../controllers/paymentController");
 const usersController = require("../controllers/usersController");
 const verifyToken = require("../middlewares/Authorization");
+const ordersController = require("../controllers/ordersController");
 
 /* Products Api's */
 
@@ -49,6 +50,16 @@ router.post(
 router.post("/addtocart", verifyToken, usersController.addToCart);
 router.get("/getcartitems", verifyToken, usersController.getCartItems);
 router.post("/removefromcart", verifyToken, usersController.removeFromCart);
+router.post(
+  "/increasecartitemcount",
+  verifyToken,
+  usersController.increaseCartItemCount
+);
+router.post(
+  "/decreasecartitemcount",
+  verifyToken,
+  usersController.decreaseCartItemCount
+);
 
 //favourite api's
 router.post("/addtofavourites", verifyToken, usersController.addToFavourites);
@@ -62,5 +73,10 @@ router.post(
   verifyToken,
   usersController.removeFromFavourites
 );
+
+//order api's
+
+router.post("/postorder", verifyToken, ordersController.postOrder);
+router.get("/getmyorders", verifyToken, ordersController.getMyOrders);
 
 module.exports = router;

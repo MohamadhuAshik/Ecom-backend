@@ -1,5 +1,6 @@
 const mongoose = require("mongoose");
 const addressSchema = require("./addressModel");
+const cartItemsSchema = require("./cartItemsModel");
 const Schema = mongoose.Schema;
 
 const usersSchema = mongoose.Schema(
@@ -27,10 +28,9 @@ const usersSchema = mongoose.Schema(
       required: true,
     },
     wishlist: [{ type: Schema.Types.ObjectId, ref: "Item" }],
-    cart_items: [{ type: Schema.Types.ObjectId, ref: "Item" }],
-    orders: {
-      type: Array,
-    },
+    // cart_items: [{ type: Schema.Types.ObjectId, ref: "Item" }],
+    cart_items: [cartItemsSchema],
+    orders: [{ type: Schema.Types.ObjectId, ref: "Orders" }],
     addresses: [addressSchema],
   },
   {

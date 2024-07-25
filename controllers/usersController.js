@@ -2,6 +2,7 @@ const users = require("../models/usersModel");
 const addresses = require("../models/addressModel");
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
+const mongoose = require("mongoose");
 
 const createUser = async (req, res) => {
   try {
@@ -503,15 +504,34 @@ const addToCart = async (req, res) => {
     if (!dbUser) {
       return res.status(404).json({ message: "Invalid user" });
     }
+
+    const isExistingItem = dbUser.cart_items.find(
+      (item) => item.Id.toString() === Id
+    );
+    console.log("isExistingItem", isExistingItem);
+    if (isExistingItem) {
+      return res.status(201).json({
+        response_code: 201,
+        message: "Item already exists",
+        isExistingItem,
+      });
+    }
+    const cartItem = {
+      Id: Id,
+      // Id: mongoose.Types.ObjectId(Id),
+      count: 1,
+    };
     await users.updateOne(
       { username: req.username },
-      { $push: { cart_items: Id } }
+      { $push: { cart_items: cartItem } }
+      // { $push: { cart_items: Id } }
     );
     res
       .status(200)
       .json({ response_code: 200, message: "Item added successfully" });
   } catch (err) {
-    res.status(500).json({ message: "Internal server error" });
+    console.log("err", err);
+    res.status(500).json({ message: "Internal server error", err });
   }
 };
 
@@ -529,12 +549,18 @@ const getCartItems = async (req, res) => {
     //   .populate("cart_items");
     const userWithCartItems = await users
       .findOne({ username: req.username })
-      .populate("cart_items");
+      .populate("cart_items.Id");
 
+    const transformedCartItems = userWithCartItems.cart_items.map((item) => ({
+      ...item.Id._doc,
+      count: item.count,
+      cartItemId: item._id, // Keeping track of the cart item's unique id in the cart
+    }));
     res.status(200).json({
       response_code: 200,
       message: "cart items retrived successfully",
-      cart_items: userWithCartItems.cart_items,
+      cart_items: transformedCartItems,
+      // cart_items: userWithCartItems.cart_items,
     });
   } catch (error) {
     res.status(500).json({ message: "Internal server error" });
@@ -553,9 +579,10 @@ const removeFromCart = async (req, res) => {
     if (!dbUser) {
       return res.status(404).json({ message: "Invalid user" });
     }
+
     await users.updateOne(
       { username: req.username },
-      { $pull: { cart_items: Id } }
+      { $pull: { cart_items: { Id: Id } } }
     );
 
     res
@@ -563,6 +590,85 @@ const removeFromCart = async (req, res) => {
       .json({ response_code: 200, message: "Item removed successfully" });
   } catch (err) {
     res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+const increaseCartItemCount = async (req, res) => {
+  try {
+    const { Id } = req.body;
+    if (!Id) {
+      return res
+        .status(400)
+        .json({ response_code: "400", message: "Id is required" });
+    }
+    const dbUser = await users.findOne({ username: req.username });
+    if (!dbUser) {
+      return res.status(404).json({ message: "Invalid user" });
+    }
+    const isExistingItem = dbUser.cart_items.find(
+      (item) => item.Id.toString() === Id
+    );
+    console.log("isExistingItem", isExistingItem);
+    if (!isExistingItem) {
+      return res.status(201).json({
+        response_code: 201,
+        message: "Item doesn't exist in the cart",
+      });
+    }
+    await users.updateOne(
+      { username: req.username },
+      {
+        $inc: {
+          "cart_items.$[outer].count": 1,
+        },
+      },
+      { arrayFilters: [{ "outer.Id": Id }] }
+    );
+
+    res.status(200).json({ response_code: 200, message: "Item incremented" });
+  } catch (error) {
+    console.log("error", error);
+    return res.status(500).json({ message: "Internal server error", error });
+  }
+};
+
+const decreaseCartItemCount = async (req, res) => {
+  try {
+    const { Id } = req.body;
+    if (!Id) {
+      return res
+        .status(400)
+        .json({ response_code: "400", message: "Id is required" });
+    }
+    const dbUser = await users.findOne({ username: req.username });
+    if (!dbUser) {
+      return res.status(404).json({ message: "Invalid user" });
+    }
+    const isExistingItem = dbUser.cart_items.find(
+      (item) => item.Id.toString() === Id
+    );
+    if (!isExistingItem) {
+      return res.status(201).json({
+        response_code: 201,
+        message: "Item doesn't exist in the cart",
+      });
+    }
+    if (isExistingItem.count <= 1) {
+      return res.status(400).json({
+        response_code: 400,
+        message: "Item count cannot be less than 1",
+      });
+    }
+    await users.updateOne(
+      { username: req.username },
+      { $inc: { "cart_items.$[outer].count": -1 } },
+      { arrayFilters: [{ "outer.Id": Id }] }
+    );
+
+    res.status(200).json({ response_code: 200, message: "Item decremented" });
+  } catch (err) {
+    console.log("err", err);
+    res.status(500).json({ message: "Internal server error", err });
   }
 };
 
@@ -664,6 +770,8 @@ const usersController = {
   addToCart,
   getCartItems,
   removeFromCart,
+  increaseCartItemCount,
+  decreaseCartItemCount,
   addToFavourites,
   getFavouriteItems,
   removeFromFavourites,
