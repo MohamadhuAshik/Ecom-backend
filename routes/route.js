@@ -7,14 +7,20 @@ const paymentControl = require("../controllers/paymentController");
 const usersController = require("../controllers/usersController");
 const verifyToken = require("../middlewares/Authorization");
 const ordersController = require("../controllers/ordersController");
+const PaymentApis = require("../PaymentGetaway/PaymentGetaway");
 
 /* Products Api's */
 
 router.get("/api/items", itemCrud.getItem);
 router.post("/api/items", uploadPhoto.array("images"), itemCrud.addItem);
-router.put("/api/items/:id", uploadPhoto.fields([
-  { name: 'primaryImage', maxCount: 1 },
-  { name: 'productImages', maxCount: 10 }]), itemCrud.updateItem);
+router.put(
+  "/api/items/:id",
+  uploadPhoto.fields([
+    { name: "primaryImage", maxCount: 1 },
+    { name: "productImages", maxCount: 10 },
+  ]),
+  itemCrud.updateItem
+);
 router.delete("/api/items/:id", itemCrud.deleteItem);
 router.get("/api/getallitems", itemCrud.getAllItems);
 
@@ -80,5 +86,18 @@ router.post(
 
 router.post("/postorder", verifyToken, ordersController.postOrder);
 router.get("/getmyorders", verifyToken, ordersController.getMyOrders);
+router.post("/cencelmyorders", verifyToken, ordersController.cancelOrder);
+router.post(
+  "/updateshipmentdate",
+  verifyToken,
+  ordersController.updateOrderShipmentDate
+);
+router.post(
+  "/updatedeliverysuccess",
+  verifyToken,
+  ordersController.updateOrderDelivered
+);
 
+//paycheck
+router.post("/paycheck", verifyToken, PaymentApis.payCheck);
 module.exports = router;

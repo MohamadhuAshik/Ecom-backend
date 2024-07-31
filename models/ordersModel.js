@@ -9,11 +9,16 @@ const ordersScheme = mongoose.Schema({
   product_info: { type: Object, required: true },
   total_amount: { type: Number, required: true },
   payment_id: { type: String },
+  session_id: { type: String },
+  invoice: { type: String },
   payment_status: { type: String, required: true },
+  card_details: { type: Object },
   delivery_status: { type: String, required: true },
   order_date: { type: Date, default: new Date() },
-  shippemnt_date: { type: Date },
+  shipment_date: { type: Date },
   delivery_date: { type: Date },
+  cencelled_date: { type: Date },
+  payment_date: { type: Date },
   //   estimated_delivery_time: { type: Date },
 });
 
