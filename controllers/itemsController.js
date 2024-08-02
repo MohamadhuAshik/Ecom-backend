@@ -1,7 +1,8 @@
 const Item = require("../models/itemsModel");
-const path = require("path")
+const path = require("path");
 const fs = require("fs");
 const { set } = require("mongoose");
+const users = require("../models/usersModel");
 
 /* GET request handler */
 const getItem = async (req, res) => {
@@ -104,74 +105,84 @@ const updateItem = async (req, res) => {
       productColor,
       productHighlights,
       productDetails,
-      productSize
+      productSize,
     } = req.body;
 
-    if (!productName || !category || !productPrice || !productType || !productDescription || !productColor ||
-      !productHighlights || !productDetails || !productSize) {
+    if (
+      !productName ||
+      !category ||
+      !productPrice ||
+      !productType ||
+      !productDescription ||
+      !productColor ||
+      !productHighlights ||
+      !productDetails ||
+      !productSize
+    ) {
       return res.status(400).json({
         message: "Required fields are missing.",
       });
-
     }
 
-    const highlights = productHighlights.split(",")
+    const highlights = productHighlights.split(",");
     const size = productSize.split(",");
 
     /* Already uploaded Item Image Deleted */
-    const dbItemData = await Item.findOne({ _id: id })
+    const dbItemData = await Item.findOne({ _id: id });
     const dbPrimaryImages = dbItemData.primaryImage.map((data) => {
-      return data.URL
-    })
+      return data.URL;
+    });
     const dbProductImages = dbItemData.image.map((data) => {
-      return data.URL
-    })
+      return data.URL;
+    });
 
-    const dbImages = [...dbPrimaryImages, ...dbProductImages]
-    console.log("dbImages", dbImages)
+    const dbImages = [...dbPrimaryImages, ...dbProductImages];
+    console.log("dbImages", dbImages);
     const uniqueImages = [...new Set(dbImages)];
-    console.log("uniqueImages", uniqueImages)
-
+    console.log("uniqueImages", uniqueImages);
 
     if (uniqueImages && uniqueImages.length !== 0) {
       uniqueImages.forEach((data) => {
         console.log(data);
         const fileName = path.basename(data);
-        console.log(fileName)
+        console.log(fileName);
         if (fileName) {
-          const filePath = path.join(__dirname, '..', 'public', category, fileName);
+          const filePath = path.join(
+            __dirname,
+            "..",
+            "public",
+            category,
+            fileName
+          );
           try {
             fs.unlinkSync(filePath);
-            console.log('File deleted successfully');
+            console.log("File deleted successfully");
           } catch (err) {
-            console.error('Error deleting file:', err);
+            console.error("Error deleting file:", err);
           }
-
         }
       });
     }
 
-    const primaryImageURL = req.files['primaryImage'] ?
-      req.files['primaryImage'].map((data, index) => {
-        const filename = data.filename;
-        return {
-          Id: index + 1,
-          URL: `http://localhost:${process.env.PORT}/${category}/${filename}`,
-        };
-      })
-      :
-      [];
+    const primaryImageURL = req.files["primaryImage"]
+      ? req.files["primaryImage"].map((data, index) => {
+          const filename = data.filename;
+          return {
+            Id: index + 1,
+            URL: `http://localhost:${process.env.PORT}/${category}/${filename}`,
+          };
+        })
+      : [];
 
-    const productImageURL = req.files['productImages'] ?
-      req.files['productImages'].map((data, index) => {
-        const filename = data.filename;
-        return {
-          Id: index + 1,
-          URL: `http://localhost:${process.env.PORT}/${category}/${filename}`,
-        };
-      })
-      :
-      [];
+    const productImageURL = req.files["productImages"]
+      ? req.files["productImages"].map((data, index) => {
+          const filename = data.filename;
+          return {
+            Id: index + 1,
+            URL: `http://localhost:${process.env.PORT}/${category}/${filename}`,
+          };
+        })
+      : [];
 
     const updatedItems = {
       name: productName,
@@ -184,17 +195,14 @@ const updateItem = async (req, res) => {
       highlights: highlights,
       detail: productDetails,
       image: productImageURL,
-      primaryImage: primaryImageURL
-    }
-    await Item.updateOne(
-      { _id: id },
-      { $set: updatedItems }
-    );
+      primaryImage: primaryImageURL,
+    };
+    await Item.updateOne({ _id: id }, { $set: updatedItems });
 
     res.json({ response_code: 200, message: "update Item Successfully" });
   } catch (err) {
-    console.log(err)
-    res.status(500).json({ message: "Internal Server Error" })
+    console.log(err);
+    res.status(500).json({ message: "Internal Server Error" });
   }
 };
 
@@ -203,34 +211,38 @@ const deleteItem = async (req, res) => {
   try {
     const { id } = req.params;
     /* image Deleted */
-    const dbItemData = await Item.findOne({ _id: id })
+    const dbItemData = await Item.findOne({ _id: id });
     const dbPrimaryImages = dbItemData.primaryImage.map((data) => {
-      return data.URL
-    })
+      return data.URL;
+    });
     const dbProductImages = dbItemData.image.map((data) => {
-      return data.URL
-    })
+      return data.URL;
+    });
 
-    const dbImages = [...dbPrimaryImages, ...dbProductImages]
-    console.log("dbImages", dbImages)
+    const dbImages = [...dbPrimaryImages, ...dbProductImages];
+    console.log("dbImages", dbImages);
     const uniqueImages = [...new Set(dbImages)];
-    console.log("uniqueImages", uniqueImages)
-
+    console.log("uniqueImages", uniqueImages);
 
     if (uniqueImages && uniqueImages.length !== 0) {
       uniqueImages.forEach((data) => {
         console.log(data);
         const fileName = path.basename(data);
-        console.log(fileName)
+        console.log(fileName);
         if (fileName) {
-          const filePath = path.join(__dirname, '..', 'public', dbItemData.category, fileName);
+          const filePath = path.join(
+            __dirname,
+            "..",
+            "public",
+            dbItemData.category,
+            fileName
+          );
           try {
             fs.unlinkSync(filePath);
-            console.log('File deleted successfully');
+            console.log("File deleted successfully");
           } catch (err) {
-            console.error('Error deleting file:', err);
+            console.error("Error deleting file:", err);
           }
-
         }
       });
     }
@@ -239,10 +251,93 @@ const deleteItem = async (req, res) => {
     res
       .status(200)
       .json({ response_code: 200, message: "delete Item successfully" });
-
   } catch (err) {
     console.log(err);
     res.status(500).json({ message: "Internal Server Error" });
+  }
+};
+
+const AddRating = async (req, res) => {
+  try {
+    const { Id, Rating } = req.body;
+    if (!Id || !Rating) {
+      return res
+        .status(400)
+        .json({ response_code: 400, message: "All fields are required" });
+    }
+
+    const dbUser = await users.findOne({ username: req.username });
+    if (!dbUser) {
+      return res.status(404).json({
+        response_code: 404,
+        message: "User not found or missing token",
+      });
+    }
+    // if(!dbUser.orders.includes(Id)){
+    //   return res.status(300).json({response_code:300,message:"user didn't order this item"})
+    // }
+    const dbItem = await Item.findOne({ _id: Id });
+    if (!dbItem) {
+      return res
+        .status(404)
+        .json({ response_code: 404, message: "Item not found" });
+    }
+
+    const rating = {
+      user: dbUser._id,
+      rating: Rating,
+      rating_date: new Date(),
+    };
+
+    await Item.updateOne({ _id: Id }, { $push: { ratings: rating } });
+    res
+      .status(200)
+      .json({ response_code: 200, message: "Item rated successfully" });
+  } catch (error) {
+    console.log("error", error);
+    res.status(500).json({ message: "Internal server error", error });
+  }
+};
+
+const AddReview = async (req, res) => {
+  try {
+    const { Id, ReviewTitle, ReviewBody } = req.body;
+    if (!Id || !ReviewTitle || !ReviewBody) {
+      return res
+        .status(400)
+        .json({ response_code: 400, message: "All fields are required" });
+    }
+
+    const dbUser = await users.findOne({ username: req.username });
+    if (!dbUser) {
+      return res.status(404).json({
+        response_code: 404,
+        message: "User not found or missing token",
+      });
+    }
+    // if(!dbUser.orders.includes(Id)){
+    //   return res.status(300).json({response_code:300,message:"user didn't order this item"})
+    // }
+    const dbItem = await Item.findOne({ _id: Id });
+    if (!dbItem) {
+      return res
+        .status(404)
+        .json({ response_code: 404, message: "Item not found" });
+    }
+
+    const review = {
+      user: dbUser._id,
+      review_title: ReviewTitle,
+      review_body: ReviewBody,
+      review_date: new Date(),
+    };
+
+    await Item.updateOne({ _id: Id }, { $push: { reviews: review } });
+    res
+      .status(200)
+      .json({ response_code: 200, message: "review added successfully" });
+  } catch (err) {
+    res.status(500).json({ message: "Internal server error" });
   }
 };
 
@@ -252,6 +347,8 @@ const itemCrud = {
   updateItem,
   deleteItem,
   getAllItems,
+  AddRating,
+  AddReview,
 };
 
 module.exports = itemCrud;

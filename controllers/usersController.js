@@ -559,7 +559,7 @@ const getCartItems = async (req, res) => {
     res.status(200).json({
       response_code: 200,
       message: "cart items retrived successfully",
-      cart_items: transformedCartItems,
+      cart_items: transformedCartItems?.reverse(),
       // cart_items: userWithCartItems.cart_items,
     });
   } catch (error) {
@@ -720,7 +720,7 @@ const getFavouriteItems = async (req, res) => {
     res.status(200).json({
       response_code: 200,
       message: "favourite items retrived successfully",
-      wishlist: wishlist_items.wishlist,
+      wishlist: wishlist_items.wishlist?.reverse(),
     });
   } catch (error) {
     res.status(500).json({ message: "Internal server error" });

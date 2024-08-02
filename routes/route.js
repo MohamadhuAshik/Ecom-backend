@@ -23,6 +23,8 @@ router.put(
 );
 router.delete("/api/items/:id", itemCrud.deleteItem);
 router.get("/api/getallitems", itemCrud.getAllItems);
+router.post("/addrating", verifyToken, itemCrud.AddRating);
+router.post("/addreview", verifyToken, itemCrud.AddReview);
 
 /* Payment Api's */
 
@@ -100,4 +102,5 @@ router.post(
 
 //paycheck
 router.post("/paycheck", verifyToken, PaymentApis.payCheck);
+
 module.exports = router;

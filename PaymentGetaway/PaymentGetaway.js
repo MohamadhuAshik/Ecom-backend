@@ -139,7 +139,12 @@ const payCheck = async (req, res) => {
     }
     await orders.updateOne(
       { _id: order_id },
-      { $set: { payment_status: session.payment_status } }
+      {
+        $set: {
+          payment_status: session.payment_status,
+          payment_date: new Date(),
+        },
+      }
     );
 
     if (session.payment_status === "paid") {
