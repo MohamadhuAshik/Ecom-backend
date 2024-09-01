@@ -56,7 +56,7 @@ const addItem = async (req, res) => {
       // console.log("filename", filename)
       return {
         Id: index + 1,
-        URL: `http://localhost:${process.env.PORT}/${req.body.category}/${filename}`,
+        URL: `https://ecom-backend-xu8u.onrender.com/${req.body.category}/${filename}`,
       };
     });
     // console.log("URL", URL)
@@ -166,22 +166,22 @@ const updateItem = async (req, res) => {
 
     const primaryImageURL = req.files["primaryImage"]
       ? req.files["primaryImage"].map((data, index) => {
-          const filename = data.filename;
-          return {
-            Id: index + 1,
-            URL: `http://localhost:${process.env.PORT}/${category}/${filename}`,
-          };
-        })
+        const filename = data.filename;
+        return {
+          Id: index + 1,
+          URL: `https://ecom-backend-xu8u.onrender.com/${category}/${filename}`,
+        };
+      })
       : [];
 
     const productImageURL = req.files["productImages"]
       ? req.files["productImages"].map((data, index) => {
-          const filename = data.filename;
-          return {
-            Id: index + 1,
-            URL: `http://localhost:${process.env.PORT}/${category}/${filename}`,
-          };
-        })
+        const filename = data.filename;
+        return {
+          Id: index + 1,
+          URL: `https://ecom-backend-xu8u.onrender.com/${category}/${filename}`,
+        };
+      })
       : [];
 
     const updatedItems = {
