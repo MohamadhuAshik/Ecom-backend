@@ -135,6 +135,7 @@ const cancelOrder = async (req, res) => {
     res.status(500).json({ message: "Internal server error" });
   }
 };
+
 const updateOrderShipmentDate = async (req, res) => {
   try {
     const { Id } = req.body;
@@ -166,6 +167,7 @@ const updateOrderShipmentDate = async (req, res) => {
     res.status(500).json({ message: "Internal server error" });
   }
 };
+
 const updateOrderDelivered = async (req, res) => {
   try {
     const { Id } = req.body;
@@ -205,12 +207,91 @@ const updateOrderDelivered = async (req, res) => {
   }
 };
 
+const getOrderHistory = async (req, res) => {
+  try {
+    const { Id } = req.body;
+    if (!Id) {
+      return res
+        .status(204)
+        .json({ response_code: 204, message: "All fields are required" });
+    }
+    const dbUser = await users.findOne({ username: req.username });
+    if (!dbUser) {
+      return res
+        .status(404)
+        .json({ response_code: 404, message: "Invalid user" });
+    }
+    const selectedOrder = await orders.findOne({ _id: Id });
+    if (!selectedOrder) {
+      return res
+        .status(404)
+        .json({ response_code: 404, message: "Invalid order" });
+    }
+    function expDelivaryDate(timestamp) {
+      const date = new Date(timestamp);
+      date.setTime(date.getTime() + 3 * 24 * 60 * 60 * 1000);
+      // const newDateISO = date.toISOString();
+      return date;
+    }
+    function expShippmentDate(timestamp) {
+      const date = new Date(timestamp);
+      date.setTime(date.getTime() + 3 * 24 * 60 * 60 * 1000);
+      // const newDateISO = date.toISOString();
+      return date;
+    }
+    const steps = [
+      {
+        label: "Order Confirmed",
+        date: selectedOrder.order_date,
+        description: `Your order has been successfully confirmed. We are preparing it for shipment.`,
+      },
+      {
+        label: selectedOrder.shipment_date ? "Shipped" : "Shipment Pending",
+        date: selectedOrder.shipment_date
+          ? selectedOrder.shipment_date
+          : `${expShippmentDate(selectedOrder.order_date)}`,
+        description: selectedOrder.shipment_date
+          ? "Your order has been shipped. It is on its way to you."
+          : `We are preparing your order for shipping. Expected shipment date ${expShippmentDate(
+              selectedOrder.order_date
+            )}`,
+      },
+      {
+        label: "Out for delivery",
+        date: selectedOrder.shipment_date ? selectedOrder.shipment_date : null,
+        description: selectedOrder.shipment_date
+          ? "Your order is now out for delivery. Expect it at your door shortly."
+          : "Your order is on the way and will reach you soon.",
+      },
+      {
+        label: selectedOrder.delivery_date ? "Deliverd" : "Delivery Pending",
+        date: selectedOrder.delivery_date
+          ? selectedOrder.delivery_date
+          : `${expDelivaryDate(selectedOrder.shipment_date)}`,
+        description: selectedOrder.delivery_date
+          ? "Your item has been delivered."
+          : `Expected Delivery on ${expDelivaryDate(
+              selectedOrder.shipment_date
+            )}`,
+      },
+    ];
+
+    res.status(200).json({
+      response_code: 200,
+      message: "Order history retrived successfully",
+      steps,
+    });
+  } catch (error) {
+    res.status(500).json({ message: "Internal server error", error });
+  }
+};
 const ordersController = {
   postOrder,
   getMyOrders,
   cancelOrder,
   updateOrderShipmentDate,
   updateOrderDelivered,
+  getOrderHistory,
 };
 
 module.exports = ordersController;

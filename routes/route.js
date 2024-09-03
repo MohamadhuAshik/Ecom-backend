@@ -89,6 +89,7 @@ router.post(
 router.post("/postorder", verifyToken, ordersController.postOrder);
 router.get("/getmyorders", verifyToken, ordersController.getMyOrders);
 router.post("/cencelmyorders", verifyToken, ordersController.cancelOrder);
+router.post("/getorderhistory", verifyToken, ordersController.getOrderHistory);
 router.post(
   "/updateshipmentdate",
   verifyToken,
