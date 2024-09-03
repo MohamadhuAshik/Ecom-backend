@@ -246,6 +246,22 @@ const getOrderHistory = async (req, res) => {
       // const newDateISO = date.toISOString();
       return date;
     }
+    let activeStatus;
+    switch (selectedOrder.delivery_status) {
+      case "order confirmed":
+        activeStatus = 1;
+        break;
+      case "shipped":
+        activeStatus = 3;
+        break;
+      case "delivered":
+        activeStatus = 4;
+        break;
+
+      default:
+        activeStatus = 0;
+        break;
+    }
     const steps = [
       {
         label: "Order Confirmed",
@@ -294,6 +310,7 @@ const getOrderHistory = async (req, res) => {
       response_code: 200,
       message: "Order history retrived successfully",
       steps,
+      activeStatus,
     });
   } catch (error) {
     console.log("err", error);
