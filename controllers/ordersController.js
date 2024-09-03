@@ -228,12 +228,19 @@ const getOrderHistory = async (req, res) => {
         .json({ response_code: 404, message: "Invalid order" });
     }
     function expDelivaryDate(timestamp) {
+      if (!selectedOrder.shipment_date) {
+        const date = new Date(selectedOrder.order_date);
+        date.setTime(date.getTime() + 6 * 24 * 60 * 60 * 1000);
+        return date;
+      }
+      if (!timestamp) return null;
       const date = new Date(timestamp);
       date.setTime(date.getTime() + 3 * 24 * 60 * 60 * 1000);
       // const newDateISO = date.toISOString();
       return date;
     }
     function expShippmentDate(timestamp) {
+      if (!timestamp) return null;
       const date = new Date(timestamp);
       date.setTime(date.getTime() + 3 * 24 * 60 * 60 * 1000);
       // const newDateISO = date.toISOString();
@@ -242,23 +249,27 @@ const getOrderHistory = async (req, res) => {
     const steps = [
       {
         label: "Order Confirmed",
-        date: selectedOrder.order_date,
+        date: selectedOrder.order_date.toString().slice(4, 24),
         description: `Your order has been successfully confirmed. We are preparing it for shipment.`,
       },
       {
         label: selectedOrder.shipment_date ? "Shipped" : "Shipment Pending",
         date: selectedOrder.shipment_date
-          ? selectedOrder.shipment_date
-          : `${expShippmentDate(selectedOrder.order_date)}`,
+          ? selectedOrder.shipment_date.toString().slice(4, 24)
+          : `Expected shipment date : ${expShippmentDate(
+              selectedOrder.order_date
+            )
+              .toString()
+              .slice(4, 24)}`,
         description: selectedOrder.shipment_date
           ? "Your order has been shipped. It is on its way to you."
-          : `We are preparing your order for shipping. Expected shipment date ${expShippmentDate(
-              selectedOrder.order_date
-            )}`,
+          : `We are preparing your order for shipping.`,
       },
       {
         label: "Out for delivery",
-        date: selectedOrder.shipment_date ? selectedOrder.shipment_date : null,
+        date: selectedOrder.shipment_date
+          ? selectedOrder.shipment_date.toString().slice(4, 24)
+          : null,
         description: selectedOrder.shipment_date
           ? "Your order is now out for delivery. Expect it at your door shortly."
           : "Your order is on the way and will reach you soon.",
@@ -266,13 +277,16 @@ const getOrderHistory = async (req, res) => {
       {
         label: selectedOrder.delivery_date ? "Deliverd" : "Delivery Pending",
         date: selectedOrder.delivery_date
-          ? selectedOrder.delivery_date
-          : `${expDelivaryDate(selectedOrder.shipment_date)}`,
+          ? selectedOrder.delivery_date.toString().slice(4, 24)
+          : null,
+        // : `${expDelivaryDate(selectedOrder.shipment_date)}`,
         description: selectedOrder.delivery_date
           ? "Your item has been delivered."
-          : `Expected Delivery on ${expDelivaryDate(
+          : `Expected Delivery on : ${expDelivaryDate(
               selectedOrder.shipment_date
-            )}`,
+            )
+              .toString()
+              .slice(4, 24)}`,
       },
     ];
 
@@ -282,6 +296,8 @@ const getOrderHistory = async (req, res) => {
       steps,
     });
   } catch (error) {
+    console.log("err", error);
+
     res.status(500).json({ message: "Internal server error", error });
   }
 };
