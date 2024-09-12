@@ -291,7 +291,7 @@ const getOrderHistory = async (req, res) => {
           : "Your order is on the way and will reach you soon.",
       },
       {
-        label: selectedOrder.delivery_date ? "Deliverd" : "Delivery Pending",
+        label: selectedOrder.delivery_date ? "Delivered" : "Delivery Pending",
         date: selectedOrder.delivery_date
           ? selectedOrder.delivery_date.toString().slice(4, 24)
           : null,
@@ -318,6 +318,7 @@ const getOrderHistory = async (req, res) => {
     res.status(500).json({ message: "Internal server error", error });
   }
 };
+
 const ordersController = {
   postOrder,
   getMyOrders,

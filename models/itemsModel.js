@@ -2,6 +2,9 @@
 
 // const { type } = require("express/lib/response")
 const mongoose = require("mongoose");
+const Schema = mongoose.Schema;
+// const reviewsSchema = require("./ReviewsModel");
+// const reviewsSchema = require("./ReviewsModel");
 // const AutoIncrement = require('mongoose-sequence')(mongoose);
 
 const itemSchema = mongoose.Schema(
@@ -50,8 +53,10 @@ const itemSchema = mongoose.Schema(
       type: Array,
       required: true,
     },
-    ratings: { type: Array },
-    reviews: { type: Array },
+    ratings: {
+      type: Array,
+    },
+    reviews: [{ type: Schema.Types.ObjectId, ref: "Reviews" }],
   },
   {
     timestamps: true,

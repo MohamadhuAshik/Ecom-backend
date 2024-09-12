@@ -8,6 +8,7 @@ const usersController = require("../controllers/usersController");
 const verifyToken = require("../middlewares/Authorization");
 const ordersController = require("../controllers/ordersController");
 const PaymentApis = require("../PaymentGetaway/PaymentGetaway");
+const reviewsController = require("../controllers/reviewsController");
 
 /* Products Api's */
 
@@ -24,7 +25,6 @@ router.put(
 router.delete("/api/items/:id", itemCrud.deleteItem);
 router.get("/api/getallitems", itemCrud.getAllItems);
 router.post("/addrating", verifyToken, itemCrud.AddRating);
-router.post("/addreview", verifyToken, itemCrud.AddReview);
 
 /* Payment Api's */
 
@@ -87,6 +87,7 @@ router.post(
 //order api's
 
 router.post("/postorder", verifyToken, ordersController.postOrder);
+
 router.get("/getmyorders", verifyToken, ordersController.getMyOrders);
 router.post("/cencelmyorders", verifyToken, ordersController.cancelOrder);
 router.post("/getorderhistory", verifyToken, ordersController.getOrderHistory);
@@ -103,5 +104,13 @@ router.post(
 
 //paycheck
 router.post("/paycheck", verifyToken, PaymentApis.payCheck);
+
+router.get("/getmyreviews", verifyToken, reviewsController.getMyReviews);
+router.post(
+  "/getproductreviews",
+  verifyToken,
+  reviewsController.getProductReviews
+);
+router.post("/addreview", verifyToken, reviewsController.AddReview);
 
 module.exports = router;

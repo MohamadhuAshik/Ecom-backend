@@ -32,6 +32,7 @@ const usersSchema = mongoose.Schema(
     cart_items: [cartItemsSchema],
     orders: [{ type: Schema.Types.ObjectId, ref: "Orders" }],
     addresses: [addressSchema],
+    my_reviews: [{ type: Schema.Types.ObjectId, ref: "Reviews" }],
   },
   {
     timestamps: true,

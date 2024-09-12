@@ -166,22 +166,22 @@ const updateItem = async (req, res) => {
 
     const primaryImageURL = req.files["primaryImage"]
       ? req.files["primaryImage"].map((data, index) => {
-        const filename = data.filename;
-        return {
-          Id: index + 1,
-          URL: `https://ecom-backend-xu8u.onrender.com/${category}/${filename}`,
-        };
-      })
+          const filename = data.filename;
+          return {
+            Id: index + 1,
+            URL: `https://ecom-backend-xu8u.onrender.com/${category}/${filename}`,
+          };
+        })
       : [];
 
     const productImageURL = req.files["productImages"]
       ? req.files["productImages"].map((data, index) => {
-        const filename = data.filename;
-        return {
-          Id: index + 1,
-          URL: `https://ecom-backend-xu8u.onrender.com/${category}/${filename}`,
-        };
-      })
+          const filename = data.filename;
+          return {
+            Id: index + 1,
+            URL: `https://ecom-backend-xu8u.onrender.com/${category}/${filename}`,
+          };
+        })
       : [];
 
     const updatedItems = {
@@ -299,48 +299,6 @@ const AddRating = async (req, res) => {
   }
 };
 
-const AddReview = async (req, res) => {
-  try {
-    const { Id, ReviewTitle, ReviewBody } = req.body;
-    if (!Id || !ReviewTitle || !ReviewBody) {
-      return res
-        .status(400)
-        .json({ response_code: 400, message: "All fields are required" });
-    }
-
-    const dbUser = await users.findOne({ username: req.username });
-    if (!dbUser) {
-      return res.status(404).json({
-        response_code: 404,
-        message: "User not found or missing token",
-      });
-    }
-    // if(!dbUser.orders.includes(Id)){
-    //   return res.status(300).json({response_code:300,message:"user didn't order this item"})
-    // }
-    const dbItem = await Item.findOne({ _id: Id });
-    if (!dbItem) {
-      return res
-        .status(404)
-        .json({ response_code: 404, message: "Item not found" });
-    }
-
-    const review = {
-      user: dbUser._id,
-      review_title: ReviewTitle,
-      review_body: ReviewBody,
-      review_date: new Date(),
-    };
-
-    await Item.updateOne({ _id: Id }, { $push: { reviews: review } });
-    res
-      .status(200)
-      .json({ response_code: 200, message: "review added successfully" });
-  } catch (err) {
-    res.status(500).json({ message: "Internal server error" });
-  }
-};
-
 const itemCrud = {
   getItem,
   addItem,
@@ -348,7 +306,6 @@ const itemCrud = {
   deleteItem,
   getAllItems,
   AddRating,
-  AddReview,
 };
 
 module.exports = itemCrud;
