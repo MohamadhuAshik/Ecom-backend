@@ -112,5 +112,11 @@ router.post(
   reviewsController.getProductReviews
 );
 router.post("/addreview", verifyToken, reviewsController.AddReview);
+router.post("/addreviewlike", verifyToken, reviewsController.addLikeToReview);
+router.post(
+  "/addreviewdislike",
+  verifyToken,
+  reviewsController.addDisLikeToReview
+);
 
 module.exports = router;
