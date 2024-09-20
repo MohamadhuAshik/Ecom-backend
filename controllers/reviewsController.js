@@ -21,9 +21,7 @@ const AddReview = async (req, res) => {
         message: "User not found or missing token",
       });
     }
-    // if(!dbUser.orders.includes(Id)){
-    //   return res.status(300).json({response_code:300,message:"user didn't order this item"})
-    // }
+
     const dbItem = await Item.findOne({ _id: Id });
     if (!dbItem) {
       return res
@@ -34,7 +32,7 @@ const AddReview = async (req, res) => {
     const dbItemRating = dbItem.ratings?.find(
       (data) => String(data.user) === String(dbUser._id)
     );
-    console.log("dbItemRating", dbItemRating);
+
     if (!dbItemRating) {
       return res.status(300).json({
         response_code: 300,
@@ -43,8 +41,20 @@ const AddReview = async (req, res) => {
       });
     }
 
+    const dbItemReview = await reviews.findOne({
+      user: dbUser._id,
+      item: dbItem._id,
+    });
+
+    if (dbItemReview) {
+      return res.status(300).json({
+        response_code: 300,
+        message: "user already reviewed this product",
+        dbItemReview,
+      });
+    }
+
     const images = req.files;
-    console.log("images", images);
     const URL = images.map((data, index) => {
       const filename = data.filename;
       return {
@@ -63,16 +73,13 @@ const AddReview = async (req, res) => {
       review_images: URL,
     });
 
-    await review.save();
+    const after_review = await review.save();
 
-    const reviewItem = await reviews.findOne({ user: dbUser._id, item: Id });
-    // console.log("reviewItem", reviewItem);
-
-    await Item.updateOne({ _id: Id }, { $push: { reviews: reviewItem._id } });
+    await Item.updateOne({ _id: Id }, { $push: { reviews: after_review._id } });
 
     await users.updateOne(
       { _id: dbUser._id },
-      { $push: { my_reviews: reviewItem._id } }
+      { $push: { my_reviews: after_review._id } }
     );
 
     res
@@ -135,15 +142,20 @@ const getProductReviews = async (req, res) => {
       });
     }
 
-    const itemReviews = await dbItem.populate("reviews");
-    console.log("itemReviews", itemReviews);
-
+    const itemReviews = await dbItem.populate({
+      path: "reviews",
+      populate: {
+        path: "user",
+        model: "Users",
+      },
+    });
     res.status(200).json({
       response_code: 200,
       message: "reviews retrived successfully",
       itemReviews: itemReviews.reviews,
     });
   } catch (error) {
+    console.log("error", error);
     res.status(500).json({ message: "Internal server error" });
   }
 };
