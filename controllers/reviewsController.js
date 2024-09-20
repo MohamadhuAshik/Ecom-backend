@@ -1,10 +1,13 @@
 const Item = require("../models/itemsModel");
 const users = require("../models/usersModel");
 const reviews = require("../models/ReviewsModel");
+const multer = require("multer");
+const fs = require("fs");
+const path = require("path");
 
 const AddReview = async (req, res) => {
   try {
-    const { Id, ReviewTitle, ReviewBody } = req.body;
+    const { Id, ReviewTitle, ReviewBody, category } = req.body;
     if (!Id || !ReviewTitle || !ReviewBody) {
       return res
         .status(400)
@@ -40,6 +43,16 @@ const AddReview = async (req, res) => {
       });
     }
 
+    const images = req.files;
+    console.log("images", images);
+    const URL = images.map((data, index) => {
+      const filename = data.filename;
+      return {
+        Id: index + 1,
+        URL: `https://ecom-backend-xu8u.onrender.com/${category}/${filename}`,
+      };
+    });
+
     const review = new reviews({
       user: dbUser._id,
       item: Id,
@@ -47,6 +60,7 @@ const AddReview = async (req, res) => {
       review_body: ReviewBody,
       review_date: new Date(),
       rating: dbItemRating.rating,
+      review_images: URL,
     });
 
     await review.save();
