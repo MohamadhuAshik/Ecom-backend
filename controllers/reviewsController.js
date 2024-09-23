@@ -142,6 +142,30 @@ const getProductReviews = async (req, res) => {
       });
     }
 
+    const ratingData = [
+      { id: 1, rating: 5, percentage: 0, count: 0, color: "bg-success" },
+      { id: 2, rating: 4, percentage: 0, count: 0, color: "bg-success" },
+      { id: 3, rating: 3, percentage: 0, count: 0, color: "bg-success" },
+      { id: 4, rating: 2, percentage: 0, count: 0, color: "bg-warning" },
+      { id: 5, rating: 1, percentage: 0, count: 0, color: "bg-danger" },
+    ];
+
+    const totalRating = dbItem.ratings.reduce((acc, rating) => {
+      const i = ratingData.findIndex(
+        (rating_data) => rating_data.rating === rating.rating
+      );
+      ratingData[i].count++;
+      return (acc = rating.rating + acc);
+    }, 0);
+
+    const rating = totalRating / dbItem.ratings.length;
+
+    const maxCount = Math.max(...ratingData.map((rating) => rating.count));
+
+    ratingData.forEach((data) => {
+      data.percentage = (data.count / maxCount) * 100;
+    });
+
     const itemReviews = await dbItem.populate({
       path: "reviews",
       populate: {
@@ -153,6 +177,9 @@ const getProductReviews = async (req, res) => {
       response_code: 200,
       message: "reviews retrived successfully",
       itemReviews: itemReviews.reviews,
+      rating,
+      ratingData,
+      maxCount,
     });
   } catch (error) {
     console.log("error", error);

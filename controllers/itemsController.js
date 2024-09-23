@@ -3,6 +3,7 @@ const path = require("path");
 const fs = require("fs");
 const { set } = require("mongoose");
 const users = require("../models/usersModel");
+const reviews = require("../models/ReviewsModel");
 
 /* GET request handler */
 const getItem = async (req, res) => {
@@ -281,6 +282,42 @@ const AddRating = async (req, res) => {
       return res
         .status(404)
         .json({ response_code: 404, message: "Item not found" });
+    }
+
+    const isAlreadedRated = dbItem.ratings?.find(
+      (rating) => String(rating.user) === String(dbUser._id)
+    );
+
+    if (isAlreadedRated) {
+      const isAlreadyReviewed = await reviews.findOne({
+        user: dbUser._id,
+        item: Id,
+      });
+      if (isAlreadyReviewed) {
+        await reviews.updateOne(
+          { _id: isAlreadyReviewed._id },
+          { $set: { rating: Rating } }
+        );
+        // return res.status(300).json({
+        //   response_code: 300,
+        //   message: "already reviewed",
+        //   isAlreadyReviewed,
+        // });
+      }
+      await Item.updateOne(
+        { _id: Id, "ratings.user": dbUser._id }, // Find the specific rating
+        {
+          $set: {
+            "ratings.$.rating": Rating,
+            "ratings.$.rating_date": new Date(),
+          },
+        } // Update the rating and date
+      );
+
+      return res.status(201).json({
+        response_code: 201,
+        message: "user already rated this product",
+      });
     }
 
     const rating = {
