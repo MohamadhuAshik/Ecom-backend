@@ -120,9 +120,9 @@ const getMyReviews = async (req, res) => {
 
 const getProductReviews = async (req, res) => {
   try {
-    const { Id } = req.body;
-    if (!Id) {
-      res
+    const { Id, Page, Limit } = req.body;
+    if (!Id || !Page || !Limit) {
+      return res
         .status(400)
         .json({ response_code: 400, message: "All fields are required" });
     }
@@ -158,7 +158,7 @@ const getProductReviews = async (req, res) => {
       return (acc = rating.rating + acc);
     }, 0);
 
-    const rating = totalRating / dbItem.ratings.length;
+    const rating = totalRating / dbItem.ratings.length || 0;
 
     const maxCount = Math.max(...ratingData.map((rating) => rating.count));
 
@@ -173,10 +173,38 @@ const getProductReviews = async (req, res) => {
         model: "Users",
       },
     });
-    res.status(200).json({
+
+    const result = {};
+    console.log("itemReviews", itemReviews);
+
+    if (!itemReviews.reviews || itemReviews.reviews?.length === 0) {
+      return res.status(200).json({
+        response_code: 200,
+        message: "reviews retrived successfully",
+        itemReviews: [],
+        rating,
+        ratingData,
+        maxCount,
+      });
+    }
+    const page = Number(Page);
+    const limit = Number(Limit);
+    const startIndex = (page - 1) * limit;
+    const endIndex = page * limit;
+    if (endIndex < itemReviews.reviews.length) {
+      result.Next = page + 1;
+    }
+    if (startIndex > 0) {
+      result.Previous = page - 1;
+    }
+    result.length = itemReviews.reviews.length;
+    const data = itemReviews.reviews.reverse().slice(startIndex, endIndex);
+    return res.status(200).json({
       response_code: 200,
       message: "reviews retrived successfully",
-      itemReviews: itemReviews.reviews,
+      // itemReviews: itemReviews.reviews,
+      itemReviews: data,
+      paginationData: result,
       rating,
       ratingData,
       maxCount,
