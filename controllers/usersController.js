@@ -3,6 +3,8 @@ const addresses = require("../models/addressModel");
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
 const mongoose = require("mongoose");
+const crypto = require("crypto");
+const nodemailer = require("nodemailer");
 
 const createUser = async (req, res) => {
   try {
@@ -79,6 +81,113 @@ const login = async (req, res) => {
     }
   } catch (err) {
     res.status(500).json({ message: "Internal server error", err });
+  }
+};
+
+const OtpStorage = {};
+
+const recoverPassword = async (req, res) => {
+  try {
+    const { Username, Email } = req.body;
+    if (!Username || !Email) {
+      return res
+        .status(400)
+        .json({ response_code: 400, message: "All fields are required" });
+    }
+    const dbUser = await users.findOne({ username: Username });
+    if (!dbUser) {
+      return res
+        .status(404)
+        .json({ response_code: 404, message: "Invalid username" });
+    }
+
+    if (dbUser.email !== Email) {
+      return res
+        .status(400)
+        .json({ response_code: 400, message: "email did't match" });
+    }
+
+    // const otp = Math.floor(Math.random()*100000)
+    const otp = crypto.randomInt(100000, 999999).toString();
+    OtpStorage[Email] = { otp, expires: Date.now() + 150000 };
+    const transporter = nodemailer.createTransport({
+      service: "Gmail",
+      auth: {
+        user: "prasannadevjlvmts@gmail.com",
+        pass: "xdnt yobs jvck maba",
+      },
+    });
+
+    const mailOptions = {
+      from: "prasannadevjlvmts@gmail.com",
+      to: Email,
+      subject: "Your OTP Code",
+      text: `Your OTP code is ${otp}`,
+    };
+
+    try {
+      await transporter.sendMail(mailOptions);
+      res
+        .status(200)
+        .json({ response_code: 200, message: "OTP sent successfully!" });
+    } catch (error) {
+      res.status(500).json({ error: "Failed to send OTP" });
+    }
+  } catch (error) {
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+const verifyOTP = async (req, res) => {
+  try {
+    const { Email, Otp, Username } = req.body;
+    if (!Email || !Otp || !Username) {
+      return res
+        .status(400)
+        .json({ response_code: 400, message: "All fields are required" });
+    }
+
+    if (Object.values(OtpStorage).length === 0) {
+      return res.status(200).json({ message: "OtpStorage Is Empty" });
+    }
+    if (OtpStorage[Email].expires < Date.now()) {
+      return res.status(200).json({ message: "OTP Expired" });
+    }
+    if (OtpStorage[Email].otp === Otp) {
+      const payload = {
+        username: Username,
+        otp: Otp,
+        email: Email,
+      };
+
+      const token = jwt.sign(payload, process.env.JWT_SECRET_KEY, {
+        expiresIn: "15m",
+      });
+      delete OtpStorage[Email];
+      res
+        .status(200)
+        .json({
+          response_code: 200,
+          message: "OTP verified successfully!",
+          token,
+        });
+    } else {
+      res
+        .status(400)
+        .json({ response_code: 400, error: "Invalid OTP or email" });
+    }
+
+    // if (
+    //   req.session.otp.toString() === Otp.toString() &&
+    //   req.session.email === Email
+    // ) {
+    //   res.status(200).json({ message: "OTP verified successfully!" });
+    // } else {
+    //   res.status(400).json({ error: "Invalid OTP or email" });
+    // }
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ message: "Internal server error" });
   }
 };
 
@@ -759,6 +868,8 @@ const removeFromFavourites = async (req, res) => {
 const usersController = {
   createUser,
   login,
+  recoverPassword,
+  verifyOTP,
   getUserData,
   updateName,
   userMailUpdate,
