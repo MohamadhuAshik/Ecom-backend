@@ -52,15 +52,15 @@ const login = async (req, res) => {
     const { Username, Password } = req.body;
     if (!Username || !Password) {
       return res
-        .status(204)
-        .json({ response_code: 204, message: "All fields are required" });
+        .status(400)
+        .json({ response_code: 400, message: "All fields are required" });
     }
     const dbuser = await users.findOne({ username: Username });
 
     if (!dbuser) {
       return res
-        .status(300)
-        .json({ response_code: 300, message: "Invalid Username" });
+        .status(404)
+        .json({ response_code: 404, message: "Invalid Username" });
     }
 
     const IsPasswordMatch = await bcrypt.compare(Password, dbuser.password);
@@ -76,8 +76,8 @@ const login = async (req, res) => {
       });
     } else {
       res
-        .status(300)
-        .json({ response_code: 300, message: "Incorrect Password" });
+        .status(401)
+        .json({ response_code: 401, message: "Incorrect Password" });
     }
   } catch (err) {
     res.status(500).json({ message: "Internal server error", err });
@@ -161,16 +161,14 @@ const verifyOTP = async (req, res) => {
       };
 
       const token = jwt.sign(payload, process.env.JWT_SECRET_KEY, {
-        expiresIn: "15m",
+        expiresIn: "2m",
       });
       delete OtpStorage[Email];
-      res
-        .status(200)
-        .json({
-          response_code: 200,
-          message: "OTP verified successfully!",
-          token,
-        });
+      res.status(200).json({
+        response_code: 200,
+        message: "OTP verified successfully!",
+        token,
+      });
     } else {
       res
         .status(400)
@@ -187,6 +185,43 @@ const verifyOTP = async (req, res) => {
     // }
   } catch (error) {
     console.log(error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+const resetPassword = async (req, res) => {
+  try {
+    const { token, Password } = req.body;
+    if (!token || !Password) {
+      return res
+        .status(400)
+        .json({ response_code: 400, message: "All fields are required" });
+    }
+    const decoded_token = jwt.verify(token, process.env.JWT_SECRET_KEY);
+    console.log("decoded_token", decoded_token);
+    const dbUser = await users.findOne({ username: decoded_token.username });
+    if (!dbUser) {
+      return res
+        .status(404)
+        .json({ response_code: 404, message: "User not found" });
+    }
+    const HashedNewPassword = await bcrypt.hash(Password, 10);
+
+    await users.updateOne(
+      { username: decoded_token.username },
+      { $set: { password: HashedNewPassword } }
+    );
+    res
+      .status(200)
+      .json({ response_code: 200, message: "Password reset successfully" });
+  } catch (error) {
+    console.log(error);
+    if (error.name === "TokenExpiredError") {
+      return res.status(401).send({
+        response_code: 401,
+        message: "Session expired. Please verify again.",
+      });
+    }
     res.status(500).json({ message: "Internal server error" });
   }
 };
@@ -870,6 +905,7 @@ const usersController = {
   login,
   recoverPassword,
   verifyOTP,
+  resetPassword,
   getUserData,
   updateName,
   userMailUpdate,

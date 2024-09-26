@@ -37,6 +37,7 @@ router.post("/signup", usersController.createUser);
 router.post("/login", usersController.login);
 router.post("/recover-password", usersController.recoverPassword);
 router.post("/verify-otp", usersController.verifyOTP);
+router.post("/reset-password", usersController.resetPassword);
 router.get("/getuserdata", verifyToken, usersController.getUserData);
 router.post("/updatename", verifyToken, usersController.updateName);
 router.post("/updateuseremail", verifyToken, usersController.userMailUpdate);
