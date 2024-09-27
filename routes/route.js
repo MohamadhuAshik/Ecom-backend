@@ -25,6 +25,7 @@ router.put(
 router.delete("/api/items/:id", itemCrud.deleteItem);
 router.get("/api/getallitems", itemCrud.getAllItems);
 router.post("/addrating", verifyToken, itemCrud.AddRating);
+router.post("/updatefields", itemCrud.updateFields);
 
 /* Payment Api's */
 

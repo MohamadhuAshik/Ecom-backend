@@ -33,6 +33,15 @@ const itemSchema = mongoose.Schema(
       type: Number,
       required: true,
     },
+    offer: {
+      type: Number,
+    },
+    delivery_charge: {
+      type: Number,
+    },
+    delivery_time: {
+      type: Number,
+    },
     size: {
       type: Array,
       required: true,

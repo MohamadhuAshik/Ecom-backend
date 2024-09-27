@@ -107,6 +107,9 @@ const updateItem = async (req, res) => {
       productHighlights,
       productDetails,
       productSize,
+      // productOffer,
+      // deliveryCharge,
+      // deliveryTime,
     } = req.body;
 
     if (
@@ -136,34 +139,35 @@ const updateItem = async (req, res) => {
     const dbProductImages = dbItemData.image.map((data) => {
       return data.URL;
     });
-
+    console.log("req.body", req.body);
+    console.log("req.files", req.files);
     const dbImages = [...dbPrimaryImages, ...dbProductImages];
     console.log("dbImages", dbImages);
     const uniqueImages = [...new Set(dbImages)];
     console.log("uniqueImages", uniqueImages);
 
-    if (uniqueImages && uniqueImages.length !== 0) {
-      uniqueImages.forEach((data) => {
-        console.log(data);
-        const fileName = path.basename(data);
-        console.log(fileName);
-        if (fileName) {
-          const filePath = path.join(
-            __dirname,
-            "..",
-            "public",
-            category,
-            fileName
-          );
-          try {
-            fs.unlinkSync(filePath);
-            console.log("File deleted successfully");
-          } catch (err) {
-            console.error("Error deleting file:", err);
-          }
-        }
-      });
-    }
+    // if (uniqueImages && uniqueImages.length !== 0) {
+    //   uniqueImages.forEach((data) => {
+    //     console.log(data);
+    //     const fileName = path.basename(data);
+    //     console.log(fileName);
+    //     if (fileName) {
+    //       const filePath = path.join(
+    //         __dirname,
+    //         "..",
+    //         "public",
+    //         category,
+    //         fileName
+    //       );
+    //       try {
+    //         fs.unlinkSync(filePath);
+    //         console.log("File deleted successfully");
+    //       } catch (err) {
+    //         console.error("Error deleting file:", err);
+    //       }
+    //     }
+    //   });
+    // }
 
     const primaryImageURL = req.files["primaryImage"]
       ? req.files["primaryImage"].map((data, index) => {
@@ -197,13 +201,46 @@ const updateItem = async (req, res) => {
       detail: productDetails,
       image: productImageURL,
       primaryImage: primaryImageURL,
+      // offer: productOffer,
+      // delivery_charge: deliveryCharge,
+      // delivery_time: deliveryTime,
     };
+    console.log("updatedItems", updatedItems);
     await Item.updateOne({ _id: id }, { $set: updatedItems });
 
     res.json({ response_code: 200, message: "update Item Successfully" });
   } catch (err) {
     console.log(err);
     res.status(500).json({ message: "Internal Server Error" });
+  }
+};
+
+const updateFields = async (req, res) => {
+  try {
+    const { Id, Offer, DeliveryCharge, DeliveryTime } = req.body;
+    const dbItem = await Item.findOne({ _id: Id });
+    if (!dbItem) {
+      return res
+        .status(400)
+        .json({ response_code: 400, message: "All fields are required" });
+    }
+    await Item.updateOne(
+      { _id: Id },
+      {
+        $set: {
+          offer: Offer,
+          delivery_charge: DeliveryCharge,
+          delivery_time: DeliveryTime,
+        },
+      }
+    );
+    res
+      .status(200)
+      .json({ response_code: 200, message: "updated successfully" });
+  } catch (error) {
+    res
+      .status(500)
+      .json({ response_code: 500, message: "Internal server error" });
   }
 };
 
@@ -343,6 +380,7 @@ const itemCrud = {
   deleteItem,
   getAllItems,
   AddRating,
+  updateFields,
 };
 
 module.exports = itemCrud;
